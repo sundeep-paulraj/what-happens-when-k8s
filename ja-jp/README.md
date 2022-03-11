@@ -71,7 +71,7 @@ Deployment リソースを作成したいことが認識された後、提供さ
 
 - `--kubeconfig` フラグが指定されている場合はそれを使います。
 - `$ KUBECONFIG` 環境変数が定義されている場合はそれを使います。
-- その他は `~/.kube` のような[予測可能なホームディレクトリ](https://github.com/kubernetes/client-go/blob/master/tools/clientcmd/loader.go#L52)を探し、見つかった最初のファイルを使います。
+- その他は `~/.kube` のような[推奨されるホームディレクトリ](https://github.com/kubernetes/client-go/blob/release-1.21/tools/clientcmd/loader.go#L43)を探し、見つかった最初のファイルを使います。
 
 ファイルを解析した後、使用する現在のコンテキスト、指す現在のクラスタ、現在のユーザーに紐付けられている認証情報を決定します。ユーザーがフラグ固有の値（ `--username` など）を指定した場合、それらが優先され、kubeconfig で指定された値を上書きします。この情報が得られるとkubectl はクライアントの設定を追加し、HTTP リクエストを適切に装飾できるようになります。
 
@@ -131,8 +131,8 @@ v1.8に含まれているオーソライザーの例は次のとおりです。
 
 kube-apiserver はリクエストを受けたとき、どのようにして何をすべきかを知るのでしょうか？リクエストが処理される前にはかなり複雑な一連のステップがあります。バイナリを最初に実行したときから始めましょう。
 
-1. `kube-apiserver` バイナリが実行されると、サーバーチェーンを作成します。これにより　apiserver 集約が可能になります。これは基本的に複数の apiserver をサポートする方法です（これについて心配する必要はありません）。
-1. これが起こると、デフォルトの実装として機能する[汎用的な apiserver が作成](https://github.com/kubernetes/kubernetes/blob/master/cmd/kube-apiserver/app/server.go#L149)されます。
+1. `kube-apiserver` バイナリが実行されると、[サーバーチェーンを作成](https://github.com/kubernetes/kubernetes/blob/1795a98eebe58fcce3b9b0a8af35d10bf91cee5b/cmd/kube-apiserver/app/server.go#L174)します。これにより　apiserver 集約が可能になります。これは基本的に複数の apiserver をサポートする方法です（これについて心配する必要はありません）。
+1. これが起こると、デフォルトの実装として機能する[汎用的な apiserver が作成](https://github.com/kubernetes/kubernetes/blob/1795a98eebe58fcce3b9b0a8af35d10bf91cee5b/cmd/kube-apiserver/app/server.go#L210)されます。
 1. 生成された OpenAPI スキーマが [apiserver の設定](https://github.com/kubernetes/apiserver/blob/7001bc4df8883d4a0ec84cd4b2117655a0009b6c/pkg/server/config.go#L149)を取り込みます。
 1. kube-apiserver は、スキーマで指定されているすべての API グループを反復処理し、それぞれに対して汎用的な抽象ストレージとして機能する[ストレージプロバイダー](https://github.com/kubernetes/kubernetes/blob/c7a1a061c3dc5acabcc0c35b3b96a6935dccf546/pkg/master/master.go#L410)を設定します。これがkube-apiserver がリソースの状態にアクセスしたり変更したりする対象です。
 1. すべてのAPIグループに対して各グループバージョンについても繰り返し、HTTP ルートごとに[REST マッピングをインストール](https://github.com/kubernetes/apiserver/blob/7001bc4df8883d4a0ec84cd4b2117655a0009b6c/pkg/endpoints/groupversion.go#L92)します。これにより kube-apiserver はリクエストをマッピングし、一致するものが見つかったら正しいロジックに委任することができるようになります。
